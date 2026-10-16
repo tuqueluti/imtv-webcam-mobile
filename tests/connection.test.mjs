@@ -25,7 +25,7 @@ for(const scenario of ['normal','answer retry','sender recovery','receiver recov
  const env=setup(),oldFetch=globalThis.fetch,oldPC=globalThis.RTCPeerConnection;let failures=scenario==='answer retry'?3:0,offerFailures=0,lostAck=false,errors=[],receiver,sender;
  globalThis.RTCPeerConnection=FakePeer;
  globalThis.fetch=async(path,opts)=>{
-   assert.equal(opts.credentials,'omit');assert.ok(!opts.headers.Authorization);
+   assert.equal(opts.credentials,'same-origin');assert.ok(!opts.headers.Authorization);
    if(failures>0&&opts?.body?.includes('"type":"answer"')){failures--;throw new TypeError('temporary loss')}
    if(offerFailures>0&&opts?.body?.includes('"type":"offer"')){offerFailures--;throw new TypeError('temporary loss')}
    const response=await env.fetch(path,opts);
@@ -70,4 +70,11 @@ for(const scenario of ['normal','answer retry','sender recovery','receiver recov
   assert.equal(errors.length,0);await sender.stop();assert.equal(originalSender.connectionState,'closed');await poll(receiver);assert.equal(receiver.cancelled,true);
   assert.equal(env.sql.prepare('SELECT COUNT(*) n FROM camera_sessions').get().n,0);
  }finally{await sender?.stop(false);await receiver?.stop(false);globalThis.fetch=oldFetch;globalThis.RTCPeerConnection=oldPC;env.sql.close();}
+});
+
+test('protected hosting reports an access error without requiring an application account',async()=>{
+ const previous=globalThis.fetch;const receiver=new StudioConnection();
+ globalThis.fetch=async()=>Response.json({error:{code:'DEPLOYMENT_PROTECTED'}},{status:401});
+ try{await assert.rejects(()=>receiver.createReceiver(),/Vercel/)}
+ finally{await receiver.stop(false);globalThis.fetch=previous}
 });
