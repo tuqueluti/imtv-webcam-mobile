@@ -12,7 +12,8 @@
     "start": "next start",
     "test": "node --test tests/*.test.mjs",
     "typecheck": "tsc --noEmit",
-    "db:setup": "node --env-file-if-exists=.env.local scripts/setup-db.mjs"
+    "db:setup": "node --env-file-if-exists=.env.local scripts/setup-db.mjs",
+    "build:vercel": "node scripts/vercel-build.mjs"
   },
   "dependencies": {
     "@libsql/client": "0.18.0",

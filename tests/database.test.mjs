@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { createClient } from '@libsql/client';
-import { createDatabaseAdapter } from '../lib/database.mjs';
+import { createDatabaseAdapter, readDatabaseConfig } from '../lib/database.mjs';
 import { handleSignal } from '../lib/signal-service.mjs';
 import { randomToken } from '../lib/signal.mjs';
 const sql=readFileSync(new URL('../db/schema.sql',import.meta.url),'utf8');
@@ -35,4 +35,13 @@ test('libSQL creation caps and RETURNING counters work on the exported schema',a
 });
 test('database initialization is repeatable and preserves existing sessions',async()=>{
  const e=await setup();try{const {data:s}=await e.call('POST');await e.client.batch(sql.split(';').map(s=>s.trim()).filter(Boolean),'write');assert.equal((await e.call('GET',s.id,'receiver',s.receiverToken)).status,200)}finally{e.client.close()}
+});
+
+test('IMTV integration overrides stale default variables without mixing credentials',()=>{
+ const old={TURSO_DATABASE_URL:'libsql://SEU-BANCO.turso.io',TURSO_AUTH_TOKEN:'old-token'};
+ for(const [key,tokenKey] of [['IMTV_URL','IMTV_AUTH_TOKEN'],['IMTV_DATABASE_URL','IMTV_AUTH_TOKEN'],['IMTV_TURSO_DATABASE_URL','IMTV_TURSO_AUTH_TOKEN']]){
+  assert.deepEqual(readDatabaseConfig({...old,[key]:'libsql://imtv.turso.io',[tokenKey]:'new-token'}),{url:'libsql://imtv.turso.io',authToken:'new-token'});
+  assert.equal(readDatabaseConfig({...old,[key]:'libsql://imtv.turso.io'}).authToken,undefined);
+ }
+ assert.deepEqual(readDatabaseConfig(old),{url:old.TURSO_DATABASE_URL,authToken:old.TURSO_AUTH_TOKEN});
 });

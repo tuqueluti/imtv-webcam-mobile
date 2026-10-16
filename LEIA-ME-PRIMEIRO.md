@@ -29,7 +29,7 @@ O segundo comando cria as tabelas e índices. Pode ser executado novamente sem a
 
 1. Crie um repositório no GitHub e envie o conteúdo da pasta extraída. `package.json` deve ficar na raiz do repositório. Inclua também `.env.example` e `.gitignore`; não envie `node_modules`, `.next` ou `.env.local`.
 2. Na Vercel, escolha **Add New → Project** e importe esse repositório.
-3. Framework: **Next.js**. Node.js: **24.x**. Install Command: `npm ci`. Build Command: `npm run build`. Deixe **Output Directory** no padrão do Next.js, sem `dist`.
+3. Framework: **Next.js**. Node.js: **24.x**. Install Command: `npm ci`. Build Command: `npm run build:vercel`. Deixe **Output Directory** no padrão do Next.js, sem `dist`.
 4. Em **Environment Variables**, configure `TURSO_DATABASE_URL` e `TURSO_AUTH_TOKEN` para **Production**. Para testar Preview, use preferencialmente outro banco/token nesse ambiente.
 5. Clique em **Deploy**. Se adicionou variáveis depois do primeiro deploy, faça **Redeploy**.
 6. Use a URL HTTPS de **produção** no computador e no celular. Se a Vercel pedir login, confira **Deployment Protection** e permita acesso público à produção. O aplicativo não tem login próprio.
@@ -48,6 +48,14 @@ npx vercel --prod
 ```
 
 Siga os prompts da sua conta Vercel. Não coloque tokens em comandos que vão para o histórico; informe-os no prompt das variáveis.
+
+## Conexão pelo Marketplace com prefixo IMTV
+
+Se a Vercel informar que `TURSO_DATABASE_URL` já existe, use **IMTV** em Custom Prefix ao conectar o banco. O aplicativo e `db:setup` reconhecem os nomes gerados com esse prefixo, mantendo também compatibilidade com os nomes padrão.
+
+Após conectar o banco no Marketplace, faça Redeploy. O build da Vercel prepara as tabelas automaticamente, sem apagar dados existentes.
+
+A conexão IMTV tem prioridade sobre variáveis antigas preenchidas manualmente. URL e token devem vir da mesma conexão. Confira os nomes em Settings → Environment Variables; não compartilhe os valores de token.
 
 ## 3. Confira a transmissão
 
